@@ -1,5 +1,4 @@
 name: Build Bonsamp APK
-
 on:
   push:
     branches: [ main ]
@@ -9,8 +8,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup JDK 17
         uses: actions/setup-java@v4
@@ -23,45 +21,73 @@ jobs:
           ZIP=$(ls *.zip 2>/dev/null | head -1)
           echo "ZIP: $ZIP"
           unzip -o "$ZIP" -d extracted
-          ls extracted/
           cp -r extracted/bonsamp/. . 2>/dev/null || cp -r extracted/. .
-          ls -la
 
-      - name: Setup project files
+      - name: Setup folders
         run: |
+          mkdir -p app/src/main/java/com/bonsamp/mobile/ui
           mkdir -p app/src/main/java/com/bonsamp/mobile/ui/fragment
           mkdir -p app/src/main/java/com/bonsamp/mobile/ui/adapter
           mkdir -p app/src/main/java/com/bonsamp/mobile/model
-          mkdir -p app/src/main/res/{layout,drawable,values}
-          mkdir -p app/src/main/res/{mipmap-hdpi,mipmap-xhdpi,mipmap-xxhdpi,mipmap-xxxhdpi}
+          mkdir -p app/src/main/res/layout
+          mkdir -p app/src/main/res/drawable
+          mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/res/mipmap-hdpi
+          mkdir -p app/src/main/res/mipmap-xhdpi
+          mkdir -p app/src/main/res/mipmap-xxhdpi
+          mkdir -p app/src/main/res/mipmap-xxxhdpi
           mkdir -p gradle/wrapper
 
-          for f in SplashActivity.kt MainActivity.kt DownloadActivity.kt; do
-            [ -f "$f" ] && mv "$f" app/src/main/java/com/bonsamp/mobile/ui/
-          done
-          for f in HomeFragment.kt ServersFragment.kt NewsFragment.kt PlayFragment.kt SettingsFragment.kt; do
-            [ -f "$f" ] && mv "$f" app/src/main/java/com/bonsamp/mobile/ui/fragment/
-          done
+      - name: Move Kotlin files
+        run: |
+          [ -f "SplashActivity.kt" ] && mv SplashActivity.kt app/src/main/java/com/bonsamp/mobile/ui/
+          [ -f "MainActivity.kt" ] && mv MainActivity.kt app/src/main/java/com/bonsamp/mobile/ui/
+          [ -f "DownloadActivity.kt" ] && mv DownloadActivity.kt app/src/main/java/com/bonsamp/mobile/ui/
+          [ -f "HomeFragment.kt" ] && mv HomeFragment.kt app/src/main/java/com/bonsamp/mobile/ui/fragment/
+          [ -f "ServersFragment.kt" ] && mv ServersFragment.kt app/src/main/java/com/bonsamp/mobile/ui/fragment/
+          [ -f "NewsFragment.kt" ] && mv NewsFragment.kt app/src/main/java/com/bonsamp/mobile/ui/fragment/
+          [ -f "PlayFragment.kt" ] && mv PlayFragment.kt app/src/main/java/com/bonsamp/mobile/ui/fragment/
+          [ -f "SettingsFragment.kt" ] && mv SettingsFragment.kt app/src/main/java/com/bonsamp/mobile/ui/fragment/
           [ -f "ServerAdapter.kt" ] && mv ServerAdapter.kt app/src/main/java/com/bonsamp/mobile/ui/adapter/
           [ -f "ServerEntry.kt" ] && mv ServerEntry.kt app/src/main/java/com/bonsamp/mobile/model/
 
-          for f in activity_splash.xml activity_main.xml activity_download.xml fragment_home.xml fragment_servers.xml fragment_news.xml fragment_play.xml fragment_settings.xml item_server.xml item_stat_row.xml; do
-            [ -f "$f" ] && mv "$f" app/src/main/res/layout/
-          done
-          for f in bg_card.xml bg_nav_item.xml bg_nav_selected.xml bg_btn_blue.xml bg_btn_outline.xml bg_server_row.xml bg_tab_item.xml bg_tab_selected.xml progress_bar.xml progress_ring.xml splash_bg.xml; do
-            [ -f "$f" ] && mv "$f" app/src/main/res/drawable/
-          done
-          for f in strings.xml colors.xml themes.xml dimens.xml arrays.xml; do
-            [ -f "$f" ] && mv "$f" app/src/main/res/values/
-          done
+      - name: Move XML files
+        run: |
+          [ -f "activity_splash.xml" ] && mv activity_splash.xml app/src/main/res/layout/
+          [ -f "activity_main.xml" ] && mv activity_main.xml app/src/main/res/layout/
+          [ -f "activity_download.xml" ] && mv activity_download.xml app/src/main/res/layout/
+          [ -f "fragment_home.xml" ] && mv fragment_home.xml app/src/main/res/layout/
+          [ -f "fragment_servers.xml" ] && mv fragment_servers.xml app/src/main/res/layout/
+          [ -f "fragment_news.xml" ] && mv fragment_news.xml app/src/main/res/layout/
+          [ -f "fragment_play.xml" ] && mv fragment_play.xml app/src/main/res/layout/
+          [ -f "fragment_settings.xml" ] && mv fragment_settings.xml app/src/main/res/layout/
+          [ -f "item_server.xml" ] && mv item_server.xml app/src/main/res/layout/
+          [ -f "item_stat_row.xml" ] && mv item_stat_row.xml app/src/main/res/layout/
+          [ -f "bg_card.xml" ] && mv bg_card.xml app/src/main/res/drawable/
+          [ -f "bg_nav_item.xml" ] && mv bg_nav_item.xml app/src/main/res/drawable/
+          [ -f "bg_nav_selected.xml" ] && mv bg_nav_selected.xml app/src/main/res/drawable/
+          [ -f "bg_btn_blue.xml" ] && mv bg_btn_blue.xml app/src/main/res/drawable/
+          [ -f "bg_btn_outline.xml" ] && mv bg_btn_outline.xml app/src/main/res/drawable/
+          [ -f "bg_server_row.xml" ] && mv bg_server_row.xml app/src/main/res/drawable/
+          [ -f "bg_tab_item.xml" ] && mv bg_tab_item.xml app/src/main/res/drawable/
+          [ -f "bg_tab_selected.xml" ] && mv bg_tab_selected.xml app/src/main/res/drawable/
+          [ -f "progress_bar.xml" ] && mv progress_bar.xml app/src/main/res/drawable/
+          [ -f "progress_ring.xml" ] && mv progress_ring.xml app/src/main/res/drawable/
+          [ -f "splash_bg.xml" ] && mv splash_bg.xml app/src/main/res/drawable/
+          [ -f "strings.xml" ] && mv strings.xml app/src/main/res/values/
+          [ -f "colors.xml" ] && mv colors.xml app/src/main/res/values/
+          [ -f "themes.xml" ] && mv themes.xml app/src/main/res/values/
+          [ -f "dimens.xml" ] && mv dimens.xml app/src/main/res/values/
+          [ -f "arrays.xml" ] && mv arrays.xml app/src/main/res/values/
           [ -f "AndroidManifest.xml" ] && mv AndroidManifest.xml app/src/main/
-          for dir in mipmap-hdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi; do
-            [ -f "ic_launcher.xml" ] && cp ic_launcher.xml app/src/main/res/$dir/
-          done
+          [ -f "ic_launcher.xml" ] && cp ic_launcher.xml app/src/main/res/mipmap-hdpi/
+          [ -f "ic_launcher.xml" ] && cp ic_launcher.xml app/src/main/res/mipmap-xhdpi/
+          [ -f "ic_launcher.xml" ] && cp ic_launcher.xml app/src/main/res/mipmap-xxhdpi/
+          [ -f "ic_launcher.xml" ] && mv ic_launcher.xml app/src/main/res/mipmap-xxxhdpi/
 
       - name: Create Gradle files
         run: |
-          cat > build.gradle << 'EOF'
+          cat > build.gradle << 'ENDOFFILE'
           buildscript {
               ext { kotlin_version = '1.9.0' }
               repositories { google(); mavenCentral() }
@@ -71,35 +97,70 @@ jobs:
               }
           }
           allprojects { repositories { google(); mavenCentral() } }
-          EOF
+          ENDOFFILE
 
-          cat > settings.gradle << 'EOF'
+          cat > settings.gradle << 'ENDOFFILE'
           rootProject.name = "Bonsamp"
           include ':app'
-          EOF
+          ENDOFFILE
 
-          cat > gradle.properties << 'EOF'
+          cat > gradle.properties << 'ENDOFFILE'
           org.gradle.jvmargs=-Xmx2048m
           android.useAndroidX=true
           android.enableJetifier=true
-          EOF
+          ENDOFFILE
 
-          cat > gradle/wrapper/gradle-wrapper.properties << 'EOF'
+          cat > gradle/wrapper/gradle-wrapper.properties << 'ENDOFFILE'
           distributionBase=GRADLE_USER_HOME
           distributionPath=wrapper/dists
           distributionUrl=https\://services.gradle.org/distributions/gradle-8.0-bin.zip
           zipStoreBase=GRADLE_USER_HOME
           zipStorePath=wrapper/dists
-          EOF
+          ENDOFFILE
 
-          curl -sL "https://github.com/gradle/gradle/raw/v8.0.0/gradle/wrapper/gradle-wrapper.jar" \
-            -o gradle/wrapper/gradle-wrapper.jar
+          curl -sL "https://github.com/gradle/gradle/raw/v8.0.0/gradle/wrapper/gradle-wrapper.jar" -o gradle/wrapper/gradle-wrapper.jar
 
-          cat > gradlew << 'EOF'
-          #!/bin/sh
-          exec java -jar "$(dirname $0)/gradle/wrapper/gradle-wrapper.jar" "$@"
-          EOF
+          printf '#!/bin/sh\nexec java -jar "$(dirname $0)/gradle/wrapper/gradle-wrapper.jar" "$@"\n' > gradlew
           chmod +x gradlew
+
+      - name: Create app build.gradle
+        run: |
+          cat > app/build.gradle << 'ENDOFFILE'
+          plugins {
+              id 'com.android.application'
+              id 'org.jetbrains.kotlin.android'
+          }
+          android {
+              namespace 'com.bonsamp.mobile'
+              compileSdk 34
+              defaultConfig {
+                  applicationId "com.bonsamp.mobile"
+                  minSdk 21
+                  targetSdk 34
+                  versionCode 1
+                  versionName "1.2.0"
+              }
+              buildTypes {
+                  debug { debuggable true }
+              }
+              buildFeatures { viewBinding true }
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_1_8
+                  targetCompatibility JavaVersion.VERSION_1_8
+              }
+              kotlinOptions { jvmTarget = '1.8' }
+          }
+          dependencies {
+              implementation 'androidx.core:core-ktx:1.12.0'
+              implementation 'androidx.appcompat:appcompat:1.6.1'
+              implementation 'com.google.android.material:material:1.10.0'
+              implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+              implementation 'androidx.recyclerview:recyclerview:1.3.2'
+              implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+              implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2'
+              implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.2'
+          }
+          ENDOFFILE
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -108,11 +169,11 @@ jobs:
         run: yes | sdkmanager --licenses || true
 
       - name: Build APK
-        run: ./gradlew assembleDebug --stacktrace 2>&1 | tail -80
+        run: ./gradlew assembleDebug --stacktrace 2>&1 | tail -100
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Bonsamp-APK
           path: app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: warn
+          if-no-files-found: warnif-no-files-found: warn
