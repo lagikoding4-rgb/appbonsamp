@@ -17,67 +17,51 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
 
-      - name: Extract ZIP & Setup Structure
+      - name: Extract ZIP
         run: |
           ZIP=$(ls *.zip 2>/dev/null | head -1)
-          if [ -n "$ZIP" ]; then
-            echo "Extracting: $ZIP"
-            unzip -o "$ZIP" -d extracted
-            # coba berbagai kemungkinan struktur folder
-            if [ -d "extracted/bonsamp" ]; then
-              cp -r extracted/bonsamp/. .
-            elif [ -d "extracted" ]; then
-              cp -r extracted/. .
-            fi
-          fi
+          echo "ZIP: $ZIP"
+          unzip -o "$ZIP" -d extracted
+          ls extracted/
+          cp -r extracted/bonsamp/. . 2>/dev/null || cp -r extracted/. .
           ls -la
 
-      - name: Create full project structure
+      - name: Setup project files
         run: |
           mkdir -p app/src/main/java/com/bonsamp/mobile/ui/fragment
           mkdir -p app/src/main/java/com/bonsamp/mobile/ui/adapter
           mkdir -p app/src/main/java/com/bonsamp/mobile/model
-          mkdir -p app/src/main/res/layout
-          mkdir -p app/src/main/res/drawable
-          mkdir -p app/src/main/res/values
-          mkdir -p app/src/main/res/mipmap-hdpi
-          mkdir -p app/src/main/res/mipmap-xhdpi
-          mkdir -p app/src/main/res/mipmap-xxhdpi
-          mkdir -p app/src/main/res/mipmap-xxxhdpi
+          mkdir -p app/src/main/res/{layout,drawable,values}
+          mkdir -p app/src/main/res/{mipmap-hdpi,mipmap-xhdpi,mipmap-xxhdpi,mipmap-xxxhdpi}
           mkdir -p gradle/wrapper
 
-      - name: Move Kotlin files
-        run: |
           for f in SplashActivity.kt MainActivity.kt DownloadActivity.kt; do
-            [ -f "$f" ] && cp "$f" app/src/main/java/com/bonsamp/mobile/ui/ && echo "Moved $f"
+            [ -f "$f" ] && mv "$f" app/src/main/java/com/bonsamp/mobile/ui/
           done
           for f in HomeFragment.kt ServersFragment.kt NewsFragment.kt PlayFragment.kt SettingsFragment.kt; do
-            [ -f "$f" ] && cp "$f" app/src/main/java/com/bonsamp/mobile/ui/fragment/ && echo "Moved $f"
+            [ -f "$f" ] && mv "$f" app/src/main/java/com/bonsamp/mobile/ui/fragment/
           done
-          [ -f "ServerAdapter.kt" ] && cp ServerAdapter.kt app/src/main/java/com/bonsamp/mobile/ui/adapter/
-          [ -f "ServerEntry.kt" ] && cp ServerEntry.kt app/src/main/java/com/bonsamp/mobile/model/
+          [ -f "ServerAdapter.kt" ] && mv ServerAdapter.kt app/src/main/java/com/bonsamp/mobile/ui/adapter/
+          [ -f "ServerEntry.kt" ] && mv ServerEntry.kt app/src/main/java/com/bonsamp/mobile/model/
 
-      - name: Move XML files
-        run: |
           for f in activity_splash.xml activity_main.xml activity_download.xml fragment_home.xml fragment_servers.xml fragment_news.xml fragment_play.xml fragment_settings.xml item_server.xml item_stat_row.xml; do
-            [ -f "$f" ] && cp "$f" app/src/main/res/layout/ && echo "Moved $f"
+            [ -f "$f" ] && mv "$f" app/src/main/res/layout/
           done
           for f in bg_card.xml bg_nav_item.xml bg_nav_selected.xml bg_btn_blue.xml bg_btn_outline.xml bg_server_row.xml bg_tab_item.xml bg_tab_selected.xml progress_bar.xml progress_ring.xml splash_bg.xml; do
-            [ -f "$f" ] && cp "$f" app/src/main/res/drawable/ && echo "Moved $f"
+            [ -f "$f" ] && mv "$f" app/src/main/res/drawable/
           done
           for f in strings.xml colors.xml themes.xml dimens.xml arrays.xml; do
-            [ -f "$f" ] && cp "$f" app/src/main/res/values/ && echo "Moved $f"
+            [ -f "$f" ] && mv "$f" app/src/main/res/values/
           done
-          [ -f "AndroidManifest.xml" ] && cp AndroidManifest.xml app/src/main/
+          [ -f "AndroidManifest.xml" ] && mv AndroidManifest.xml app/src/main/
           for dir in mipmap-hdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi; do
             [ -f "ic_launcher.xml" ] && cp ic_launcher.xml app/src/main/res/$dir/
           done
 
-      - name: Create root build.gradle
+      - name: Create Gradle files
         run: |
-          cat > build.gradle << 'GRADLE'
+          cat > build.gradle << 'EOF'
           buildscript {
               ext { kotlin_version = '1.9.0' }
               repositories { google(); mavenCentral() }
@@ -87,114 +71,44 @@ jobs:
               }
           }
           allprojects { repositories { google(); mavenCentral() } }
-          task clean(type: Delete) { delete rootProject.buildDir }
-          GRADLE
+          EOF
 
-      - name: Create settings.gradle
-        run: |
-          cat > settings.gradle << 'GRADLE'
+          cat > settings.gradle << 'EOF'
           rootProject.name = "Bonsamp"
           include ':app'
-          GRADLE
+          EOF
 
-      - name: Create app/build.gradle
-        run: |
-          cat > app/build.gradle << 'GRADLE'
-          plugins {
-              id 'com.android.application'
-              id 'org.jetbrains.kotlin.android'
-          }
-          android {
-              namespace 'com.bonsamp.mobile'
-              compileSdk 34
-              defaultConfig {
-                  applicationId "com.bonsamp.mobile"
-                  minSdk 21
-                  targetSdk 34
-                  versionCode 1
-                  versionName "1.2.0"
-              }
-              buildTypes {
-                  debug { debuggable true }
-                  release {
-                      minifyEnabled false
-                      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-                  }
-              }
-              buildFeatures { viewBinding true }
-              compileOptions {
-                  sourceCompatibility JavaVersion.VERSION_1_8
-                  targetCompatibility JavaVersion.VERSION_1_8
-              }
-              kotlinOptions { jvmTarget = '1.8' }
-          }
-          dependencies {
-              implementation 'androidx.core:core-ktx:1.12.0'
-              implementation 'androidx.appcompat:appcompat:1.6.1'
-              implementation 'com.google.android.material:material:1.10.0'
-              implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-              implementation 'androidx.recyclerview:recyclerview:1.3.2'
-              implementation 'com.squareup.okhttp3:okhttp:4.11.0'
-              implementation 'com.google.code.gson:gson:2.10.1'
-              implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
-              implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2'
-              implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.2'
-          }
-          GRADLE
-
-      - name: Create gradle.properties
-        run: |
-          cat > gradle.properties << 'PROPS'
-          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+          cat > gradle.properties << 'EOF'
+          org.gradle.jvmargs=-Xmx2048m
           android.useAndroidX=true
           android.enableJetifier=true
-          kotlin.code.style=official
-          PROPS
+          EOF
 
-      - name: Create Gradle Wrapper
-        run: |
-          cat > gradle/wrapper/gradle-wrapper.properties << 'PROPS'
+          cat > gradle/wrapper/gradle-wrapper.properties << 'EOF'
           distributionBase=GRADLE_USER_HOME
           distributionPath=wrapper/dists
           distributionUrl=https\://services.gradle.org/distributions/gradle-8.0-bin.zip
           zipStoreBase=GRADLE_USER_HOME
           zipStorePath=wrapper/dists
-          PROPS
+          EOF
 
-          cat > gradlew << 'GRADLEW'
-          #!/bin/sh
-          GRADLE_USER_HOME="${GRADLE_USER_HOME:-$HOME/.gradle}"
-          export GRADLE_USER_HOME
-          
-          SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-          GRADLE_WRAPPER_JAR="$SCRIPT_DIR/gradle/wrapper/gradle-wrapper.jar"
-          
-          exec java -jar "$GRADLE_WRAPPER_JAR" "$@"
-          GRADLEW
-          chmod +x gradlew
-
-      - name: Download Gradle Wrapper JAR
-        run: |
-          mkdir -p gradle/wrapper
-          curl -L "https://raw.githubusercontent.com/gradle/gradle/v8.0.0/gradle/wrapper/gradle-wrapper.jar" \
+          curl -sL "https://github.com/gradle/gradle/raw/v8.0.0/gradle/wrapper/gradle-wrapper.jar" \
             -o gradle/wrapper/gradle-wrapper.jar
-          ls -la gradle/wrapper/
+
+          cat > gradlew << 'EOF'
+          #!/bin/sh
+          exec java -jar "$(dirname $0)/gradle/wrapper/gradle-wrapper.jar" "$@"
+          EOF
+          chmod +x gradlew
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Accept SDK Licenses
+      - name: Accept Licenses
         run: yes | sdkmanager --licenses || true
 
-      - name: Build Debug APK
-        run: |
-          export ANDROID_HOME=$ANDROID_SDK_ROOT
-          ./gradlew assembleDebug --stacktrace --info 2>&1 | tail -100
-
-      - name: Check APK output
-        run: |
-          find . -name "*.apk" 2>/dev/null
-          ls -la app/build/outputs/apk/debug/ 2>/dev/null || echo "No APK found"
+      - name: Build APK
+        run: ./gradlew assembleDebug --stacktrace 2>&1 | tail -80
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
